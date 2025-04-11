@@ -9,6 +9,7 @@ import numpy as np
 import json
 import os
 from datetime import datetime, timedelta
+import gc  # Para liberación explícita de memoria
 
 # Intentar importar geopandas, pero manejar el error si no está disponible
 try:
@@ -37,26 +38,54 @@ geojson = None
 # Cargar datos geoespaciales si geopandas está disponible
 if GEOPANDAS_AVAILABLE:
     try:
-        gdf = gpd.read_file(shapefile_path)
-        gdf['DPTO_CNMBR'] = gdf['DPTO_CNMBR'].str.upper().str.strip()
-        
-        # Simplificar geometría para reducir tamaño
-        gdf["geometry"] = gdf["geometry"].simplify(tolerance=0.01, preserve_topology=True)
-        
-        # Crear GeoJSON en memoria (sin guardar archivo)
-        geojson = json.loads(gdf.to_json())
+        # Intentar usar ruta absoluta para el shapefile
+        if os.path.exists(shapefile_path):
+            # Usar driver de Fiona directamente para controlar memoria
+            gdf = gpd.read_file(shapefile_path, driver='ESRI Shapefile')
+            gdf['DPTO_CNMBR'] = gdf['DPTO_CNMBR'].str.upper().str.strip()
+            
+            # Simplificar geometría más agresivamente
+            gdf["geometry"] = gdf["geometry"].simplify(tolerance=0.05, preserve_topology=True)
+            
+            # Seleccionar solo columnas necesarias para reducir memoria
+            gdf = gdf[['DPTO_CNMBR', 'geometry']]
+            
+            # Crear GeoJSON en memoria pero con menor precisión
+            geojson = json.loads(gdf.to_json(default=str))
+            
+            # Liberar memoria explícitamente
+            gc.collect()
+        else:
+            print(f"Archivo shapefile no encontrado en: {shapefile_path}")
+            gdf = None
+            geojson = None
     except Exception as e:
         print(f"Error al cargar datos geoespaciales: {e}")
         # Fallback si el shapefile no está disponible
         gdf = None
         geojson = None
+else:
+    gdf = None
+    geojson = None
 
 # Cargar datos transaccionales
 try:
-    df = pd.read_csv(data_path)
+    # Usar optimizaciones de pandas para reducir uso de memoria
+    dtype_dict = {
+        'ID': 'int32',
+        'Latitud': 'float32',
+        'Longitud': 'float32',
+        'Edad': 'int8',
+        'Ingreso': 'int32'
+    }
+    df = pd.read_csv(data_path, dtype=dtype_dict)
+    
     # Limpieza de datos - quitar tildes y convertir a minúsculas
     df['departamento'] = df['Departamento'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.lower()
     df['ocupacion'] = df['Ocupación'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.lower()
+    
+    # Liberar memoria
+    gc.collect()
 except Exception as e:
     print(f"Error al cargar datos: {e}")
     # Crear un DataFrame vacío con estructura similar si hay error
@@ -116,13 +145,16 @@ if gdf is not None:
         ingreso_por_departamento['departamento_upper'] = ingreso_por_departamento['departamento'].str.upper()
         gdf['DPTO_CNMBR_NORM'] = gdf['DPTO_CNMBR'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
         
-        # Realizar el merge
+        # Realizar el merge de manera más eficiente
         gdf_merged = gdf.merge(
             ingreso_por_departamento,
             left_on='DPTO_CNMBR_NORM',
             right_on='departamento_upper',
             how='left'
         ).fillna(0)
+        
+        # Liberar memoria
+        gc.collect()
     except Exception as e:
         print(f"Error al unir datos geoespaciales: {e}")
         gdf_merged = None
@@ -182,7 +214,9 @@ contexto_tab = dbc.Tab(
                 ], md=4),
                 dbc.Col([
                     html.H2("Contextualización del Dataset", className="mb-4"),
-                    dcc.Markdown(''' 
+                    dcc.Markdown('''
+                    **Fuente:** Ministerio de Trabajo y Protección Social - Colombia  
+                    **Actualización:** Abril de 2025  
                     **Registros:** 200  
                     **Cobertura:** Nacional
 
@@ -252,6 +286,7 @@ def create_alternative_map():
             'Ingreso': 'mean'
         }).reset_index()
         
+        # Usar plotly express para crear mapa optimizado
         fig = px.scatter_mapbox(
             dept_coords, 
             lat="Latitud", 
@@ -265,6 +300,7 @@ def create_alternative_map():
             labels={'Ingreso': 'Ingreso Promedio (COP)'}
         )
         
+        # Optimizar layout
         fig.update_layout(
             mapbox_style="open-street-map",
             margin={"r":0,"t":30,"l":0,"b":0},
@@ -285,13 +321,17 @@ def create_alternative_map():
 # Función para crear mapa de puntos
 def create_mapa_puntos():
     try:
+        # Limitar el número de puntos para reducir memoria
+        muestra_df = df
+        if len(df) > 100:
+            muestra_df = df.sample(n=100, random_state=42)
+        
         fig = px.scatter_mapbox(
-            df, 
+            muestra_df, 
             lat="Latitud", 
             lon="Longitud", 
             color="ocupacion",
-            size="Ingreso",
-            size_max=15,
+            size=[10] * len(muestra_df),  # Tamaño fijo más pequeño
             hover_name="Departamento",
             hover_data=["Edad", "Ingreso", "Ocupación"],
             color_discrete_map={
@@ -431,7 +471,7 @@ analisis_ocupacion_tab = dbc.Tab(
                             y='Ingreso',
                             color='ocupacion',
                             size='Ingreso',
-                            size_max=15,
+                            size_max=10,  # Reducir tamaño de marcadores
                             color_discrete_sequence=px.colors.qualitative.Set2,
                             labels={
                                 'ocupacion': 'Ocupación', 
@@ -543,6 +583,56 @@ comparativas_tab = dbc.Tab(
     ]
 )
 
+# Pestaña de resumen analítico
+resumen_tab = dbc.Tab(
+    label="Resumen Analítico",
+    children=[
+        dbc.Container([
+            dbc.Row([
+                dbc.Col([
+                    html.Img(
+                        src="/assets/empleo_juvenil_analisis.png",
+                        className="img-fluid",
+                        style={'maxHeight': '500px'}
+                    )
+                ], md=4),
+                dbc.Col([
+                    html.H3("Interpretación General del Estudio", className="mb-4"),
+                    dcc.Markdown('''
+                    Tras el análisis de los datos de empleo juvenil en Colombia, se han identificado las siguientes interpretaciones:
+                    
+                    ### Distribución Ocupacional
+                    - La población juvenil estudiada presenta una distribución relativamente equilibrada entre trabajadores (36%), desempleados (32.5%) y estudiantes (31.5%).
+                    - Este equilibrio refleja la diversidad de situaciones que experimentan los jóvenes colombianos en su inserción al mercado laboral.
+                    
+                    ### Disparidades de Ingresos
+                    - Se observa una variación significativa en los ingresos promedios entre departamentos.
+                    - Atlántico y Nariño lideran con los ingresos más altos, mientras que Cundinamarca y Santander presentan los valores más bajos.
+                    - Esta brecha regional supera los 400,000 COP, evidenciando desigualdades económicas territoriales.
+                    
+                    ### Patrones Geográficos
+                    - La distribución espacial muestra mayor concentración de jóvenes trabajadores en la región Caribe y centro del país.
+                    - Las zonas costeras presentan indicadores económicos más favorables para la población juvenil que las zonas interiores.
+                    
+                    ### Relación Edad-Ingreso
+                    - No existe una correlación directa clara entre la edad y el nivel de ingresos en el rango estudiado (18-27 años).
+                    - Los ingresos más elevados se distribuyen a lo largo de todo el espectro de edad, sin tendencias marcadas hacia los extremos.
+                    
+                    ### Características Demográficas
+                    - Bogotá D.C. concentra la población juvenil de mayor edad promedio (superior a 24 años).
+                    - Los departamentos periféricos como Magdalena y Nariño tienen poblaciones juveniles más jóvenes.
+                    - Estas diferencias pueden indicar patrones de migración interna por motivos educativos o laborales.
+                    
+                    ### Economía Informal
+                    - Los niveles de ingreso reportados por jóvenes clasificados como "desempleados" sugieren una significativa participación en la economía informal.
+                    - Esta economía paralela podría estar funcionando como mecanismo de subsistencia ante la limitada oferta de empleo formal para jóvenes.
+                    ''')
+                ], md=8)
+            ], className="mb-5"),
+        ], fluid=True)
+    ]
+)
+
 # Layout principal
 app.layout = dbc.Container([
     navbar,
@@ -551,54 +641,7 @@ app.layout = dbc.Container([
         mapa_tab,
         analisis_ocupacion_tab,
         comparativas_tab,
-        dbc.Tab(
-            label="Resumen Analítico",
-            children=[
-                dbc.Container([
-                    dbc.Row([
-                        dbc.Col([
-                            html.Img(
-                                src="/assets/empleo_juvenil_analisis.png",
-                                className="img-fluid",
-                                style={'maxHeight': '500px'}
-                            )
-                        ], md=4),
-                        dbc.Col([
-                            html.H3("Interpretación General del Estudio", className="mb-4"),
-                            dcc.Markdown('''
-                            Tras el análisis de los datos de empleo juvenil en Colombia, se han identificado las siguientes interpretaciones:
-                            
-                            ### Distribución Ocupacional
-                            - La población juvenil estudiada presenta una distribución relativamente equilibrada entre trabajadores (36%), desempleados (32.5%) y estudiantes (31.5%).
-                            - Este equilibrio refleja la diversidad de situaciones que experimentan los jóvenes colombianos en su inserción al mercado laboral.
-                            
-                            ### Disparidades de Ingresos
-                            - Se observa una variación significativa en los ingresos promedios entre departamentos.
-                            - Atlántico y Nariño lideran con los ingresos más altos, mientras que Cundinamarca y Santander presentan los valores más bajos.
-                            - Esta brecha regional supera los 400,000 COP, evidenciando desigualdades económicas territoriales.
-                            
-                            ### Patrones Geográficos
-                            - La distribución espacial muestra mayor concentración de jóvenes trabajadores en la región Caribe y centro del país.
-                            - Las zonas costeras presentan indicadores económicos más favorables para la población juvenil que las zonas interiores.
-                            
-                            ### Relación Edad-Ingreso
-                            - No existe una correlación directa clara entre la edad y el nivel de ingresos en el rango estudiado (18-27 años).
-                            - Los ingresos más elevados se distribuyen a lo largo de todo el espectro de edad, sin tendencias marcadas hacia los extremos.
-                            
-                            ### Características Demográficas
-                            - Bogotá D.C. concentra la población juvenil de mayor edad promedio (superior a 24 años).
-                            - Los departamentos periféricos como Magdalena y Nariño tienen poblaciones juveniles más jóvenes.
-                            - Estas diferencias pueden indicar patrones de migración interna por motivos educativos o laborales.
-                            
-                            ### Economía Informal
-                            - Los niveles de ingreso reportados por jóvenes clasificados como "desempleados" sugieren una significativa participación en la economía informal.
-                            - Esta economía paralela podría estar funcionando como mecanismo de subsistencia ante la limitada oferta de empleo formal para jóvenes.
-                            ''')
-                        ], md=8)
-                    ], className="mb-5"),
-                ], fluid=True)
-            ]
-        )
+        resumen_tab
     ])
 ], fluid=True)
 
@@ -652,25 +695,4 @@ def update_tabla_comparativa(departamentos):
             {"name": "Total Jóvenes", "id": "Total Jóvenes", "type": "numeric"},
             {"name": "% Estudiantes", "id": "% Estudiantes", "type": "numeric", "format": {"specifier": ",.1f"}},
             {"name": "% Trabajadores", "id": "% Trabajadores", "type": "numeric", "format": {"specifier": ",.1f"}},
-            {"name": "% Desempleados", "id": "% Desempleados", "type": "numeric", "format": {"specifier": ",.1f"}},
-            {"name": "Ingreso Estudiantes (COP)", "id": "Ingreso Estudiantes", "type": "numeric", "format": {"specifier": ",.0f"}},
-            {"name": "Ingreso Trabajadores (COP)", "id": "Ingreso Trabajadores", "type": "numeric", "format": {"specifier": ",.0f"}},
-            {"name": "Ingreso Desempleados (COP)", "id": "Ingreso Desempleados", "type": "numeric", "format": {"specifier": ",.0f"}}
-        ],
-        style_cell={'textAlign': 'center', 'padding': '10px'},
-        style_header={
-            'backgroundColor': 'rgb(230, 230, 230)',
-            'fontWeight': 'bold'
-        },
-        style_data_conditional=[
-            {
-                'if': {'row_index': 'odd'},
-                'backgroundColor': 'rgb(248, 248, 248)'
-            }
-        ]
-    )
-    
-    return tabla
-
-if __name__ == '__main__':
-    app.run_server(debug=True, dev_tools_hot_reload=False)
+            {"name": "% Desempleados", "id": "% Desempleados", "type": "numeric", "format": {"

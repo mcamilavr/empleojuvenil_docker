@@ -5,3 +5,9 @@ services:
     plan: free
     repo: https://github.com/mcamilavr/empleojuvenil_docker.git
     branch: master
+    envVars:
+      - key: WEB_CONCURRENCY
+        value: 1
+      - key: PYTHON_VERSION
+        value: 3.9.7
+    autoDeploy: true
