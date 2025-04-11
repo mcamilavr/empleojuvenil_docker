@@ -9,7 +9,6 @@ import numpy as np
 import json
 import os
 from datetime import datetime, timedelta
-import gc  # Para liberación explícita de memoria
 
 # Intentar importar geopandas, pero manejar el error si no está disponible
 try:
@@ -40,21 +39,14 @@ if GEOPANDAS_AVAILABLE:
     try:
         # Intentar usar ruta absoluta para el shapefile
         if os.path.exists(shapefile_path):
-            # Usar driver de Fiona directamente para controlar memoria
-            gdf = gpd.read_file(shapefile_path, driver='ESRI Shapefile')
+            gdf = gpd.read_file(shapefile_path)
             gdf['DPTO_CNMBR'] = gdf['DPTO_CNMBR'].str.upper().str.strip()
             
-            # Simplificar geometría más agresivamente
-            gdf["geometry"] = gdf["geometry"].simplify(tolerance=0.05, preserve_topology=True)
+            # Simplificar geometría para reducir tamaño
+            gdf["geometry"] = gdf["geometry"].simplify(tolerance=0.01, preserve_topology=True)
             
-            # Seleccionar solo columnas necesarias para reducir memoria
-            gdf = gdf[['DPTO_CNMBR', 'geometry']]
-            
-            # Crear GeoJSON en memoria pero con menor precisión
-            geojson = json.loads(gdf.to_json(default=str))
-            
-            # Liberar memoria explícitamente
-            gc.collect()
+            # Crear GeoJSON en memoria (sin guardar archivo)
+            geojson = json.loads(gdf.to_json())
         else:
             print(f"Archivo shapefile no encontrado en: {shapefile_path}")
             gdf = None
@@ -70,22 +62,10 @@ else:
 
 # Cargar datos transaccionales
 try:
-    # Usar optimizaciones de pandas para reducir uso de memoria
-    dtype_dict = {
-        'ID': 'int32',
-        'Latitud': 'float32',
-        'Longitud': 'float32',
-        'Edad': 'int8',
-        'Ingreso': 'int32'
-    }
-    df = pd.read_csv(data_path, dtype=dtype_dict)
-    
+    df = pd.read_csv(data_path)
     # Limpieza de datos - quitar tildes y convertir a minúsculas
     df['departamento'] = df['Departamento'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.lower()
     df['ocupacion'] = df['Ocupación'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.lower()
-    
-    # Liberar memoria
-    gc.collect()
 except Exception as e:
     print(f"Error al cargar datos: {e}")
     # Crear un DataFrame vacío con estructura similar si hay error
@@ -141,20 +121,16 @@ edad_por_departamento.columns = ['departamento', 'edad_promedio']
 if gdf is not None:
     try:
         # Transformar nombres de departamentos para coincidir
-        # Asegurarse que los nombres de departamentos coincidan (ambos en mayúsculas)
         ingreso_por_departamento['departamento_upper'] = ingreso_por_departamento['departamento'].str.upper()
         gdf['DPTO_CNMBR_NORM'] = gdf['DPTO_CNMBR'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
         
-        # Realizar el merge de manera más eficiente
+        # Realizar el merge
         gdf_merged = gdf.merge(
             ingreso_por_departamento,
             left_on='DPTO_CNMBR_NORM',
             right_on='departamento_upper',
             how='left'
         ).fillna(0)
-        
-        # Liberar memoria
-        gc.collect()
     except Exception as e:
         print(f"Error al unir datos geoespaciales: {e}")
         gdf_merged = None
@@ -271,49 +247,10 @@ def create_mapa_figure():
             return fig
         except Exception as e:
             print(f"Error al crear mapa: {e}")
-            return create_alternative_map()
+            return px.scatter().update_layout(
+                title="Error al cargar el mapa. Datos geoespaciales no disponibles."
+            )
     else:
-        return create_alternative_map()
-
-def create_alternative_map():
-    # Si no tenemos acceso a los shapefiles, crear un mapa alternativo con los departamentos
-    # como marcadores en un mapa basado en las coordenadas de cada departamento
-    try:
-        # Calcular coordenadas centrales para cada departamento
-        dept_coords = df.groupby('departamento').agg({
-            'Latitud': 'mean',
-            'Longitud': 'mean',
-            'Ingreso': 'mean'
-        }).reset_index()
-        
-        # Usar plotly express para crear mapa optimizado
-        fig = px.scatter_mapbox(
-            dept_coords, 
-            lat="Latitud", 
-            lon="Longitud", 
-            color="Ingreso",
-            size=[15] * len(dept_coords),  # Tamaño fijo para todos
-            hover_name="departamento",
-            color_continuous_scale="viridis",
-            zoom=5,
-            height=600,
-            labels={'Ingreso': 'Ingreso Promedio (COP)'}
-        )
-        
-        # Optimizar layout
-        fig.update_layout(
-            mapbox_style="open-street-map",
-            margin={"r":0,"t":30,"l":0,"b":0},
-            title="Mapa Alternativo: Ingresos Promedio por Departamento",
-            coloraxis_colorbar={
-                'title': {'text': 'COP', 'font': {'color': '#333'}},
-                'tickfont': {'color': '#333'}
-            }
-        )
-        
-        return fig
-    except Exception as e:
-        print(f"Error al crear mapa alternativo: {e}")
         return px.scatter().update_layout(
             title="Datos geoespaciales no disponibles para mostrar el mapa."
         )
@@ -321,17 +258,13 @@ def create_alternative_map():
 # Función para crear mapa de puntos
 def create_mapa_puntos():
     try:
-        # Limitar el número de puntos para reducir memoria
-        muestra_df = df
-        if len(df) > 100:
-            muestra_df = df.sample(n=100, random_state=42)
-        
         fig = px.scatter_mapbox(
-            muestra_df, 
+            df, 
             lat="Latitud", 
             lon="Longitud", 
             color="ocupacion",
-            size=[10] * len(muestra_df),  # Tamaño fijo más pequeño
+            size="Ingreso",
+            size_max=15,
             hover_name="Departamento",
             hover_data=["Edad", "Ingreso", "Ocupación"],
             color_discrete_map={
@@ -471,7 +404,7 @@ analisis_ocupacion_tab = dbc.Tab(
                             y='Ingreso',
                             color='ocupacion',
                             size='Ingreso',
-                            size_max=10,  # Reducir tamaño de marcadores
+                            size_max=15,
                             color_discrete_sequence=px.colors.qualitative.Set2,
                             labels={
                                 'ocupacion': 'Ocupación', 
@@ -695,4 +628,25 @@ def update_tabla_comparativa(departamentos):
             {"name": "Total Jóvenes", "id": "Total Jóvenes", "type": "numeric"},
             {"name": "% Estudiantes", "id": "% Estudiantes", "type": "numeric", "format": {"specifier": ",.1f"}},
             {"name": "% Trabajadores", "id": "% Trabajadores", "type": "numeric", "format": {"specifier": ",.1f"}},
-            {"name": "% Desempleados", "id": "% Desempleados", "type": "numeric", "format": {"
+            {"name": "% Desempleados", "id": "% Desempleados", "type": "numeric", "format": {"specifier": ",.1f"}},
+            {"name": "Ingreso Estudiantes (COP)", "id": "Ingreso Estudiantes", "type": "numeric", "format": {"specifier": ",.0f"}},
+            {"name": "Ingreso Trabajadores (COP)", "id": "Ingreso Trabajadores", "type": "numeric", "format": {"specifier": ",.0f"}},
+            {"name": "Ingreso Desempleados (COP)", "id": "Ingreso Desempleados", "type": "numeric", "format": {"specifier": ",.0f"}}
+        ],
+        style_cell={'textAlign': 'center', 'padding': '10px'},
+        style_header={
+            'backgroundColor': 'rgb(230, 230, 230)',
+            'fontWeight': 'bold'
+        },
+        style_data_conditional=[
+            {
+                'if': {'row_index': 'odd'},
+                'backgroundColor': 'rgb(248, 248, 248)'
+            }
+        ]
+    )
+    
+    return tabla
+
+if __name__ == '__main__':
+    app.run_server(debug=True)
