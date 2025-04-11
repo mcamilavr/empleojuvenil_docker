@@ -37,28 +37,19 @@ geojson = None
 # Cargar datos geoespaciales si geopandas está disponible
 if GEOPANDAS_AVAILABLE:
     try:
-        # Intentar usar ruta absoluta para el shapefile
-        if os.path.exists(shapefile_path):
-            gdf = gpd.read_file(shapefile_path)
-            gdf['DPTO_CNMBR'] = gdf['DPTO_CNMBR'].str.upper().str.strip()
-            
-            # Simplificar geometría para reducir tamaño
-            gdf["geometry"] = gdf["geometry"].simplify(tolerance=0.01, preserve_topology=True)
-            
-            # Crear GeoJSON en memoria (sin guardar archivo)
-            geojson = json.loads(gdf.to_json())
-        else:
-            print(f"Archivo shapefile no encontrado en: {shapefile_path}")
-            gdf = None
-            geojson = None
+        gdf = gpd.read_file(shapefile_path)
+        gdf['DPTO_CNMBR'] = gdf['DPTO_CNMBR'].str.upper().str.strip()
+        
+        # Simplificar geometría para reducir tamaño
+        gdf["geometry"] = gdf["geometry"].simplify(tolerance=0.01, preserve_topology=True)
+        
+        # Crear GeoJSON en memoria (sin guardar archivo)
+        geojson = json.loads(gdf.to_json())
     except Exception as e:
         print(f"Error al cargar datos geoespaciales: {e}")
         # Fallback si el shapefile no está disponible
         gdf = None
         geojson = None
-else:
-    gdf = None
-    geojson = None
 
 # Cargar datos transaccionales
 try:
@@ -121,6 +112,7 @@ edad_por_departamento.columns = ['departamento', 'edad_promedio']
 if gdf is not None:
     try:
         # Transformar nombres de departamentos para coincidir
+        # Asegurarse que los nombres de departamentos coincidan (ambos en mayúsculas)
         ingreso_por_departamento['departamento_upper'] = ingreso_por_departamento['departamento'].str.upper()
         gdf['DPTO_CNMBR_NORM'] = gdf['DPTO_CNMBR'].str.normalize('NFKD').str.encode('ascii', errors='ignore').str.decode('utf-8').str.upper()
         
@@ -190,9 +182,7 @@ contexto_tab = dbc.Tab(
                 ], md=4),
                 dbc.Col([
                     html.H2("Contextualización del Dataset", className="mb-4"),
-                    dcc.Markdown('''
-                    **Fuente:** Ministerio de Trabajo y Protección Social - Colombia  
-                    **Actualización:** Abril de 2025  
+                    dcc.Markdown(''' 
                     **Registros:** 200  
                     **Cobertura:** Nacional
 
@@ -247,10 +237,47 @@ def create_mapa_figure():
             return fig
         except Exception as e:
             print(f"Error al crear mapa: {e}")
-            return px.scatter().update_layout(
-                title="Error al cargar el mapa. Datos geoespaciales no disponibles."
-            )
+            return create_alternative_map()
     else:
+        return create_alternative_map()
+
+def create_alternative_map():
+    # Si no tenemos acceso a los shapefiles, crear un mapa alternativo con los departamentos
+    # como marcadores en un mapa basado en las coordenadas de cada departamento
+    try:
+        # Calcular coordenadas centrales para cada departamento
+        dept_coords = df.groupby('departamento').agg({
+            'Latitud': 'mean',
+            'Longitud': 'mean',
+            'Ingreso': 'mean'
+        }).reset_index()
+        
+        fig = px.scatter_mapbox(
+            dept_coords, 
+            lat="Latitud", 
+            lon="Longitud", 
+            color="Ingreso",
+            size=[15] * len(dept_coords),  # Tamaño fijo para todos
+            hover_name="departamento",
+            color_continuous_scale="viridis",
+            zoom=5,
+            height=600,
+            labels={'Ingreso': 'Ingreso Promedio (COP)'}
+        )
+        
+        fig.update_layout(
+            mapbox_style="open-street-map",
+            margin={"r":0,"t":30,"l":0,"b":0},
+            title="Mapa Alternativo: Ingresos Promedio por Departamento",
+            coloraxis_colorbar={
+                'title': {'text': 'COP', 'font': {'color': '#333'}},
+                'tickfont': {'color': '#333'}
+            }
+        )
+        
+        return fig
+    except Exception as e:
+        print(f"Error al crear mapa alternativo: {e}")
         return px.scatter().update_layout(
             title="Datos geoespaciales no disponibles para mostrar el mapa."
         )
@@ -516,56 +543,6 @@ comparativas_tab = dbc.Tab(
     ]
 )
 
-# Pestaña de resumen analítico
-resumen_tab = dbc.Tab(
-    label="Resumen Analítico",
-    children=[
-        dbc.Container([
-            dbc.Row([
-                dbc.Col([
-                    html.Img(
-                        src="/assets/empleo_juvenil_analisis.png",
-                        className="img-fluid",
-                        style={'maxHeight': '500px'}
-                    )
-                ], md=4),
-                dbc.Col([
-                    html.H3("Interpretación General del Estudio", className="mb-4"),
-                    dcc.Markdown('''
-                    Tras el análisis de los datos de empleo juvenil en Colombia, se han identificado las siguientes interpretaciones:
-                    
-                    ### Distribución Ocupacional
-                    - La población juvenil estudiada presenta una distribución relativamente equilibrada entre trabajadores (36%), desempleados (32.5%) y estudiantes (31.5%).
-                    - Este equilibrio refleja la diversidad de situaciones que experimentan los jóvenes colombianos en su inserción al mercado laboral.
-                    
-                    ### Disparidades de Ingresos
-                    - Se observa una variación significativa en los ingresos promedios entre departamentos.
-                    - Atlántico y Nariño lideran con los ingresos más altos, mientras que Cundinamarca y Santander presentan los valores más bajos.
-                    - Esta brecha regional supera los 400,000 COP, evidenciando desigualdades económicas territoriales.
-                    
-                    ### Patrones Geográficos
-                    - La distribución espacial muestra mayor concentración de jóvenes trabajadores en la región Caribe y centro del país.
-                    - Las zonas costeras presentan indicadores económicos más favorables para la población juvenil que las zonas interiores.
-                    
-                    ### Relación Edad-Ingreso
-                    - No existe una correlación directa clara entre la edad y el nivel de ingresos en el rango estudiado (18-27 años).
-                    - Los ingresos más elevados se distribuyen a lo largo de todo el espectro de edad, sin tendencias marcadas hacia los extremos.
-                    
-                    ### Características Demográficas
-                    - Bogotá D.C. concentra la población juvenil de mayor edad promedio (superior a 24 años).
-                    - Los departamentos periféricos como Magdalena y Nariño tienen poblaciones juveniles más jóvenes.
-                    - Estas diferencias pueden indicar patrones de migración interna por motivos educativos o laborales.
-                    
-                    ### Economía Informal
-                    - Los niveles de ingreso reportados por jóvenes clasificados como "desempleados" sugieren una significativa participación en la economía informal.
-                    - Esta economía paralela podría estar funcionando como mecanismo de subsistencia ante la limitada oferta de empleo formal para jóvenes.
-                    ''')
-                ], md=8)
-            ], className="mb-5"),
-        ], fluid=True)
-    ]
-)
-
 # Layout principal
 app.layout = dbc.Container([
     navbar,
@@ -574,7 +551,54 @@ app.layout = dbc.Container([
         mapa_tab,
         analisis_ocupacion_tab,
         comparativas_tab,
-        resumen_tab
+        dbc.Tab(
+            label="Resumen Analítico",
+            children=[
+                dbc.Container([
+                    dbc.Row([
+                        dbc.Col([
+                            html.Img(
+                                src="/assets/empleo_juvenil_analisis.png",
+                                className="img-fluid",
+                                style={'maxHeight': '500px'}
+                            )
+                        ], md=4),
+                        dbc.Col([
+                            html.H3("Interpretación General del Estudio", className="mb-4"),
+                            dcc.Markdown('''
+                            Tras el análisis de los datos de empleo juvenil en Colombia, se han identificado las siguientes interpretaciones:
+                            
+                            ### Distribución Ocupacional
+                            - La población juvenil estudiada presenta una distribución relativamente equilibrada entre trabajadores (36%), desempleados (32.5%) y estudiantes (31.5%).
+                            - Este equilibrio refleja la diversidad de situaciones que experimentan los jóvenes colombianos en su inserción al mercado laboral.
+                            
+                            ### Disparidades de Ingresos
+                            - Se observa una variación significativa en los ingresos promedios entre departamentos.
+                            - Atlántico y Nariño lideran con los ingresos más altos, mientras que Cundinamarca y Santander presentan los valores más bajos.
+                            - Esta brecha regional supera los 400,000 COP, evidenciando desigualdades económicas territoriales.
+                            
+                            ### Patrones Geográficos
+                            - La distribución espacial muestra mayor concentración de jóvenes trabajadores en la región Caribe y centro del país.
+                            - Las zonas costeras presentan indicadores económicos más favorables para la población juvenil que las zonas interiores.
+                            
+                            ### Relación Edad-Ingreso
+                            - No existe una correlación directa clara entre la edad y el nivel de ingresos en el rango estudiado (18-27 años).
+                            - Los ingresos más elevados se distribuyen a lo largo de todo el espectro de edad, sin tendencias marcadas hacia los extremos.
+                            
+                            ### Características Demográficas
+                            - Bogotá D.C. concentra la población juvenil de mayor edad promedio (superior a 24 años).
+                            - Los departamentos periféricos como Magdalena y Nariño tienen poblaciones juveniles más jóvenes.
+                            - Estas diferencias pueden indicar patrones de migración interna por motivos educativos o laborales.
+                            
+                            ### Economía Informal
+                            - Los niveles de ingreso reportados por jóvenes clasificados como "desempleados" sugieren una significativa participación en la economía informal.
+                            - Esta economía paralela podría estar funcionando como mecanismo de subsistencia ante la limitada oferta de empleo formal para jóvenes.
+                            ''')
+                        ], md=8)
+                    ], className="mb-5"),
+                ], fluid=True)
+            ]
+        )
     ])
 ], fluid=True)
 
@@ -649,4 +673,4 @@ def update_tabla_comparativa(departamentos):
     return tabla
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, dev_tools_hot_reload=False)

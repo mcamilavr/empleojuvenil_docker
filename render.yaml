@@ -1,13 +1,21 @@
 services:
   - type: web
-    name: dash-empleo-juvenil
-    runtime: docker
+    name: dash-empleo-juvenil # Puedes mantener este nombre
+    env: docker # ¡Importante! Usar 'env' en lugar de 'runtime'
     plan: free
-    repo: https://github.com/mcamilavr/empleojuvenil_docker.git
-    branch: master
-    envVars:
-      - key: WEB_CONCURRENCY
-        value: 1
-      - key: PYTHON_VERSION
-        value: 3.9.7
+    repo: https://github.com/mcamilavr/empleojuvenil_docker.git # Tu repo
+    branch: master # Tu rama
+    # Especificar explícitamente la ruta al Dockerfile
+    dockerfilePath: ./Dockerfile
+    # Añadir un health check path (Dash responde en /)
+    healthCheckPath: /
+    # buildContext: . # Usualmente no necesario si Dockerfile está en raíz
     autoDeploy: true
+
+    # envVars (Opcionales para Docker, WEB_CONCURRENCY no usado por el CMD actual)
+    # envVars:
+    #  - key: WEB_CONCURRENCY
+    #    value: 1
+    #  - key: PYTHON_VERSION
+    #    value: 3.9.7
+  
