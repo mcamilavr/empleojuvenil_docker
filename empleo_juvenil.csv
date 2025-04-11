@@ -1,0 +1,201 @@
+ID,Departamento,Latitud,Longitud,Edad,Ocupación,Ingreso
+1,Santander,7.1254,-73.1198,20,Estudiante,868997
+2,Santander,7.1254,-73.1198,24,Desempleado,586245
+3,Cundinamarca,4.6814,-74.1371,25,Trabajador,415614
+4,Magdalena,10.591,-74.1869,24,Desempleado,1516916
+5,Bolívar,10.3997,-75.5144,25,Desempleado,183492
+6,Valle del Cauca,3.4516,-76.5319,26,Trabajador,700605
+7,Bogotá D.C.,4.711,-74.0721,18,Trabajador,487202
+8,Bolívar,10.3997,-75.5144,27,Trabajador,1867647
+9,Córdoba,8.749,-75.8814,23,Trabajador,1761003
+10,Magdalena,10.591,-74.1869,21,Desempleado,569422
+11,Córdoba,8.749,-75.8814,18,Trabajador,599586
+12,Magdalena,10.591,-74.1869,19,Estudiante,49967
+13,Atlántico,10.9685,-74.7813,27,Trabajador,1001329
+14,Bolívar,10.3997,-75.5144,21,Trabajador,270184
+15,Bolívar,10.3997,-75.5144,18,Desempleado,1257543
+16,Valle del Cauca,3.4516,-76.5319,23,Estudiante,649258
+17,Valle del Cauca,3.4516,-76.5319,18,Estudiante,561954
+18,Nariño,1.2136,-77.2811,26,Estudiante,1444996
+19,Córdoba,8.749,-75.8814,27,Trabajador,1552158
+20,Antioquia,6.2442,-75.5812,20,Desempleado,1082473
+21,Valle del Cauca,3.4516,-76.5319,18,Desempleado,1881758
+22,Santander,7.1254,-73.1198,23,Trabajador,227684
+23,Antioquia,6.2442,-75.5812,23,Estudiante,305159
+24,Bogotá D.C.,4.711,-74.0721,24,Estudiante,542469
+25,Valle del Cauca,3.4516,-76.5319,24,Desempleado,1953110
+26,Bogotá D.C.,4.711,-74.0721,27,Trabajador,543156
+27,Valle del Cauca,3.4516,-76.5319,21,Estudiante,1661007
+28,Cundinamarca,4.6814,-74.1371,22,Trabajador,24107
+29,Atlántico,10.9685,-74.7813,20,Desempleado,541360
+30,Valle del Cauca,3.4516,-76.5319,23,Trabajador,224647
+31,Atlántico,10.9685,-74.7813,24,Trabajador,1303103
+32,Córdoba,8.749,-75.8814,26,Trabajador,308099
+33,Córdoba,8.749,-75.8814,26,Trabajador,1726751
+34,Valle del Cauca,3.4516,-76.5319,22,Estudiante,180020
+35,Magdalena,10.591,-74.1869,21,Desempleado,1700976
+36,Nariño,1.2136,-77.2811,24,Estudiante,1928130
+37,Nariño,1.2136,-77.2811,20,Estudiante,552766
+38,Antioquia,6.2442,-75.5812,21,Estudiante,874353
+39,Cundinamarca,4.6814,-74.1371,26,Estudiante,1241807
+40,Bogotá D.C.,4.711,-74.0721,22,Desempleado,1694651
+41,Bogotá D.C.,4.711,-74.0721,27,Desempleado,159969
+42,Magdalena,10.591,-74.1869,24,Estudiante,292172
+43,Bogotá D.C.,4.711,-74.0721,19,Trabajador,292256
+44,Magdalena,10.591,-74.1869,26,Trabajador,842005
+45,Nariño,1.2136,-77.2811,22,Trabajador,498558
+46,Valle del Cauca,3.4516,-76.5319,22,Trabajador,1166103
+47,Bogotá D.C.,4.711,-74.0721,21,Trabajador,1362946
+48,Córdoba,8.749,-75.8814,25,Desempleado,1798688
+49,Valle del Cauca,3.4516,-76.5319,21,Trabajador,723421
+50,Antioquia,6.2442,-75.5812,19,Desempleado,298290
+51,Atlántico,10.9685,-74.7813,22,Trabajador,1535189
+52,Cundinamarca,4.6814,-74.1371,20,Trabajador,912413
+53,Magdalena,10.591,-74.1869,21,Estudiante,258466
+54,Magdalena,10.591,-74.1869,20,Estudiante,44568
+55,Santander,7.1254,-73.1198,24,Estudiante,467995
+56,Cundinamarca,4.6814,-74.1371,23,Desempleado,356960
+57,Córdoba,8.749,-75.8814,19,Desempleado,745558
+58,Córdoba,8.749,-75.8814,25,Estudiante,1297433
+59,Bogotá D.C.,4.711,-74.0721,22,Estudiante,1767543
+60,Córdoba,8.749,-75.8814,23,Trabajador,1274568
+61,Atlántico,10.9685,-74.7813,25,Desempleado,1993095
+62,Bolívar,10.3997,-75.5144,24,Trabajador,466276
+63,Magdalena,10.591,-74.1869,20,Trabajador,1390944
+64,Magdalena,10.591,-74.1869,19,Estudiante,538638
+65,Santander,7.1254,-73.1198,20,Trabajador,366896
+66,Atlántico,10.9685,-74.7813,25,Trabajador,1606909
+67,Bolívar,10.3997,-75.5144,21,Estudiante,465518
+68,Córdoba,8.749,-75.8814,25,Estudiante,762375
+69,Atlántico,10.9685,-74.7813,21,Trabajador,1431478
+70,Córdoba,8.749,-75.8814,24,Trabajador,1432404
+71,Santander,7.1254,-73.1198,23,Trabajador,129663
+72,Valle del Cauca,3.4516,-76.5319,27,Desempleado,7353
+73,Antioquia,6.2442,-75.5812,18,Trabajador,8578
+74,Magdalena,10.591,-74.1869,25,Estudiante,1121779
+75,Santander,7.1254,-73.1198,23,Trabajador,1048589
+76,Bolívar,10.3997,-75.5144,19,Desempleado,842981
+77,Nariño,1.2136,-77.2811,22,Trabajador,1200218
+78,Magdalena,10.591,-74.1869,19,Desempleado,1166739
+79,Bolívar,10.3997,-75.5144,27,Desempleado,1256952
+80,Bogotá D.C.,4.711,-74.0721,24,Estudiante,311299
+81,Santander,7.1254,-73.1198,27,Trabajador,355325
+82,Córdoba,8.749,-75.8814,23,Desempleado,1212055
+83,Bogotá D.C.,4.711,-74.0721,24,Trabajador,1182938
+84,Antioquia,6.2442,-75.5812,23,Desempleado,1814091
+85,Valle del Cauca,3.4516,-76.5319,27,Estudiante,127771
+86,Bolívar,10.3997,-75.5144,18,Estudiante,585570
+87,Santander,7.1254,-73.1198,20,Trabajador,913623
+88,Antioquia,6.2442,-75.5812,27,Trabajador,1029278
+89,Nariño,1.2136,-77.2811,19,Trabajador,1482490
+90,Córdoba,8.749,-75.8814,18,Trabajador,58946
+91,Antioquia,6.2442,-75.5812,18,Trabajador,1783517
+92,Cundinamarca,4.6814,-74.1371,21,Desempleado,701119
+93,Nariño,1.2136,-77.2811,18,Trabajador,725722
+94,Atlántico,10.9685,-74.7813,19,Desempleado,236916
+95,Valle del Cauca,3.4516,-76.5319,18,Desempleado,759824
+96,Bolívar,10.3997,-75.5144,23,Desempleado,1380229
+97,Cundinamarca,4.6814,-74.1371,21,Trabajador,1337838
+98,Bogotá D.C.,4.711,-74.0721,25,Estudiante,1336938
+99,Magdalena,10.591,-74.1869,22,Estudiante,288209
+100,Bogotá D.C.,4.711,-74.0721,27,Trabajador,1399227
+101,Santander,7.1254,-73.1198,22,Trabajador,1570530
+102,Bogotá D.C.,4.711,-74.0721,25,Trabajador,307162
+103,Nariño,1.2136,-77.2811,27,Desempleado,1473290
+104,Nariño,1.2136,-77.2811,23,Estudiante,1046693
+105,Nariño,1.2136,-77.2811,23,Estudiante,1538404
+106,Bolívar,10.3997,-75.5144,20,Estudiante,1235177
+107,Bogotá D.C.,4.711,-74.0721,23,Estudiante,674977
+108,Córdoba,8.749,-75.8814,27,Desempleado,882862
+109,Bolívar,10.3997,-75.5144,24,Trabajador,190111
+110,Bolívar,10.3997,-75.5144,19,Desempleado,410986
+111,Santander,7.1254,-73.1198,20,Trabajador,728439
+112,Atlántico,10.9685,-74.7813,23,Trabajador,1495736
+113,Valle del Cauca,3.4516,-76.5319,27,Estudiante,935085
+114,Santander,7.1254,-73.1198,26,Estudiante,1460461
+115,Atlántico,10.9685,-74.7813,26,Trabajador,1391778
+116,Bogotá D.C.,4.711,-74.0721,25,Trabajador,484315
+117,Magdalena,10.591,-74.1869,25,Estudiante,111605
+118,Antioquia,6.2442,-75.5812,26,Estudiante,1421205
+119,Valle del Cauca,3.4516,-76.5319,26,Estudiante,543631
+120,Cundinamarca,4.6814,-74.1371,27,Estudiante,312557
+121,Magdalena,10.591,-74.1869,26,Estudiante,1554025
+122,Cundinamarca,4.6814,-74.1371,22,Desempleado,1176181
+123,Valle del Cauca,3.4516,-76.5319,23,Desempleado,1041639
+124,Antioquia,6.2442,-75.5812,22,Desempleado,500299
+125,Antioquia,6.2442,-75.5812,18,Estudiante,280068
+126,Córdoba,8.749,-75.8814,21,Trabajador,1760985
+127,Antioquia,6.2442,-75.5812,18,Trabajador,1418009
+128,Bolívar,10.3997,-75.5144,18,Estudiante,1273676
+129,Cundinamarca,4.6814,-74.1371,20,Desempleado,850839
+130,Cundinamarca,4.6814,-74.1371,24,Trabajador,242923
+131,Córdoba,8.749,-75.8814,18,Estudiante,294210
+132,Magdalena,10.591,-74.1869,24,Desempleado,742943
+133,Atlántico,10.9685,-74.7813,27,Desempleado,1636758
+134,Antioquia,6.2442,-75.5812,27,Desempleado,1251504
+135,Atlántico,10.9685,-74.7813,18,Desempleado,1695219
+136,Santander,7.1254,-73.1198,26,Desempleado,649188
+137,Bolívar,10.3997,-75.5144,22,Desempleado,1295549
+138,Antioquia,6.2442,-75.5812,23,Desempleado,1221221
+139,Córdoba,8.749,-75.8814,26,Desempleado,473452
+140,Córdoba,8.749,-75.8814,20,Desempleado,422373
+141,Valle del Cauca,3.4516,-76.5319,20,Desempleado,1128396
+142,Bolívar,10.3997,-75.5144,22,Estudiante,652366
+143,Santander,7.1254,-73.1198,24,Trabajador,1143105
+144,Atlántico,10.9685,-74.7813,20,Estudiante,1364106
+145,Nariño,1.2136,-77.2811,21,Trabajador,1383759
+146,Córdoba,8.749,-75.8814,19,Estudiante,1494417
+147,Atlántico,10.9685,-74.7813,26,Trabajador,928993
+148,Antioquia,6.2442,-75.5812,27,Trabajador,1525001
+149,Antioquia,6.2442,-75.5812,26,Trabajador,1034572
+150,Santander,7.1254,-73.1198,19,Estudiante,491743
+151,Atlántico,10.9685,-74.7813,22,Trabajador,864827
+152,Magdalena,10.591,-74.1869,18,Desempleado,1846023
+153,Atlántico,10.9685,-74.7813,25,Trabajador,1027014
+154,Bogotá D.C.,4.711,-74.0721,23,Estudiante,759343
+155,Cundinamarca,4.6814,-74.1371,27,Estudiante,346704
+156,Bogotá D.C.,4.711,-74.0721,27,Desempleado,1454888
+157,Nariño,1.2136,-77.2811,19,Trabajador,1336282
+158,Córdoba,8.749,-75.8814,19,Estudiante,341882
+159,Bogotá D.C.,4.711,-74.0721,27,Trabajador,984063
+160,Valle del Cauca,3.4516,-76.5319,22,Desempleado,1760092
+161,Córdoba,8.749,-75.8814,24,Desempleado,25848
+162,Cundinamarca,4.6814,-74.1371,26,Estudiante,1246963
+163,Santander,7.1254,-73.1198,26,Trabajador,968356
+164,Bogotá D.C.,4.711,-74.0721,23,Desempleado,1552218
+165,Nariño,1.2136,-77.2811,19,Desempleado,1097124
+166,Valle del Cauca,3.4516,-76.5319,23,Estudiante,1892159
+167,Santander,7.1254,-73.1198,18,Desempleado,1976506
+168,Cundinamarca,4.6814,-74.1371,19,Estudiante,143608
+169,Atlántico,10.9685,-74.7813,20,Desempleado,257150
+170,Atlántico,10.9685,-74.7813,22,Desempleado,1518679
+171,Bolívar,10.3997,-75.5144,27,Estudiante,457772
+172,Magdalena,10.591,-74.1869,18,Estudiante,200591
+173,Bogotá D.C.,4.711,-74.0721,27,Trabajador,112409
+174,Cundinamarca,4.6814,-74.1371,22,Desempleado,762879
+175,Santander,7.1254,-73.1198,22,Trabajador,866549
+176,Nariño,1.2136,-77.2811,21,Trabajador,1883038
+177,Cundinamarca,4.6814,-74.1371,20,Estudiante,736666
+178,Nariño,1.2136,-77.2811,24,Desempleado,7385
+179,Córdoba,8.749,-75.8814,24,Estudiante,1105322
+180,Valle del Cauca,3.4516,-76.5319,18,Desempleado,808974
+181,Magdalena,10.591,-74.1869,24,Estudiante,1986303
+182,Valle del Cauca,3.4516,-76.5319,20,Desempleado,1164089
+183,Nariño,1.2136,-77.2811,20,Trabajador,707918
+184,Magdalena,10.591,-74.1869,23,Desempleado,1002198
+185,Bolívar,10.3997,-75.5144,23,Desempleado,1626648
+186,Bolívar,10.3997,-75.5144,21,Estudiante,1466859
+187,Valle del Cauca,3.4516,-76.5319,22,Desempleado,272195
+188,Santander,7.1254,-73.1198,20,Desempleado,174371
+189,Cundinamarca,4.6814,-74.1371,20,Desempleado,1570932
+190,Bolívar,10.3997,-75.5144,26,Desempleado,680527
+191,Antioquia,6.2442,-75.5812,22,Trabajador,953006
+192,Atlántico,10.9685,-74.7813,18,Estudiante,1891047
+193,Antioquia,6.2442,-75.5812,26,Desempleado,1015610
+194,Santander,7.1254,-73.1198,27,Estudiante,1246676
+195,Santander,7.1254,-73.1198,23,Trabajador,369587
+196,Bogotá D.C.,4.711,-74.0721,26,Trabajador,878119
+197,Magdalena,10.591,-74.1869,24,Desempleado,1704618
+198,Bolívar,10.3997,-75.5144,27,Estudiante,1729140
+199,Córdoba,8.749,-75.8814,27,Estudiante,389712
+200,Cundinamarca,4.6814,-74.1371,24,Estudiante,1200514
