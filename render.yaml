@@ -4,7 +4,4 @@ services:
     runtime: docker
     plan: free
     repo: https://github.com/mcamilavr/empleojuvenil_docker.git
-    branch: main
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.9.7
+    branch: master
